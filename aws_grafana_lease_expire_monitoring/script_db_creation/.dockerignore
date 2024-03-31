@@ -1,0 +1,6 @@
+*.yaml
+*.yml
+*.md
+.cache
+.git
+__pycache__/

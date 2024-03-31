@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  supportlab-stop-instance: # Replace with your service name
+    image: supportlab-aws-multiregion-stop-instance  # Replace with the name of your Docker image
+    deploy:
+        resources:
+            limits:
+              cpus: '0.50'
+              memory: 512M
+            reservations:
+              cpus: '0.25'
+              memory: 128M
+    env_file:
+      - .env
+    environment:
+      - ACCESS_KEY=$(ACCESS_KEY)
+      - SECRET_KEY=$(SECRET_KEY)
+      - DB_HOST=$(DB_HOST)
+      - DB_NAME=$(DB_NAME)
+      - DB_TABLE_NAME=$(DB_TABLE_NAME)

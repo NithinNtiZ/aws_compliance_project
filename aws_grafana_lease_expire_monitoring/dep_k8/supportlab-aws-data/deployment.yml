@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supportlab-aws-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: supportlab-aws-data
+  template:
+    metadata:
+      labels:
+        app: supportlab-aws-data
+    spec:
+      imagePullSecrets:
+      - name: myregistrykey
+      containers:
+      - name: supportlab-aws-data
+        image: supportlab.azurecr.io/supportlab-aws-multiregion-instance-data:latest
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+        env:
+        - name: ACCESS_KEY
+          value: your_access_key
+        - name: SECRET_KEY
+          value: super_secret_key
+        - name: DB_NAME
+          value: grafana_test
+        - name: DB_TABLE_NAME
+          value: instance_data_test

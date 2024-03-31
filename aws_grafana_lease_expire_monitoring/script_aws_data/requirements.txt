@@ -1,0 +1,6 @@
+boto3
+datetime
+tabulate
+pyfiglet
+mysql.connector
+mysql-connector-python

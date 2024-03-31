@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  supportlab-aws-data: # Replace with your service name
+    image: supportlab.azurecr.io/supportlab-aws-multiregion-instance-data:local  # Replace with the name of your Docker image
+    depends_on :
+      - supportlab-aws-db-creation
+    deploy:
+        resources:
+            limits:
+              cpus: '0.50'
+              memory: 512M
+            reservations:
+              cpus: '0.25'
+              memory: 128M
+    env_file:
+      - .env
+  supportlab-aws-db-creation: 
+    image: supportlab.azurecr.io/supportlab-aws-multiregion-db-creation:local  
+    depends_on :
+      - supportlab-aws-multiregion-mysql
+    command: sleep 10
+    deploy:
+        resources:
+            limits:
+              cpus: '0.50'
+              memory: 512M
+            reservations:
+              cpus: '0.25'
+              memory: 128M
+    env_file:
+      - .env
+  
+  supportlab-aws-multiregion-mysql:
+    image: mysql
+    container_name: supportlab-aws-multiregion-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - C:\Users\nbabu\Desktop\project-prometheus\data\mysql\data:/var/lib/mysql
+    restart: always
+    ports:
+      - '3306:3306'
+  
+  supportlab-aws-multiregion-grafana:
+    image: grafana/grafana-enterprise
+    container_name: supportlab-aws-multiregion
+    restart: always
+    user : '1001:1001'
+    ports:
+      - '3000:3000'
+    volumes:
+      - C:\Users\nbabu\Desktop\project-prometheus\data\grafana\data:/var/lib/grafana

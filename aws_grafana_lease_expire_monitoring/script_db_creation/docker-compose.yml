@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  supportlab-aws-data: # Replace with your service name
+    image: supportlab-aws-multiregion-db-creation  # Replace with the name of your Docker image
+    deploy:
+        resources:
+            limits:
+              cpus: '0.50'
+              memory: 512M
+            reservations:
+              cpus: '0.25'
+              memory: 128M
+    environment:
+      - ACCESS_KEY=your_access_key
+      - SECRET_KEY=super_secret_key
+      - DB_NAME=grafana_test
+      - DB_TABLE_NAME=instance_data_test
