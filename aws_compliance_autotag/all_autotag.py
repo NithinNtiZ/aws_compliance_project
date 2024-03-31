@@ -1,0 +1,96 @@
+import boto3
+from datetime import datetime, timedelta
+
+def lambda_handler(event, context):
+    EventName = event['detail']['eventName']
+    
+    CreateOn, t = event['detail']['eventTime'].split("T")
+    # Parse the string into a datetime object
+    original_date = datetime.strptime(CreateOn, "%Y-%m-%d")
+    
+    # Add 48 hours to the datetime object
+    new_date = original_date + timedelta(hours=48)
+    
+    # Convert the modified datetime object back to a string representation
+    new_date_str = new_date.strftime("%Y-%m-%d")
+
+
+    user_identity = event['detail']['userIdentity']
+    aws_id = user_identity['userName'] if user_identity['type'] == "IAMUser" else user_identity['principalId']
+
+    tag = {
+            "group" : [
+                {"Key": "Team", "Value": ""},
+                {"Key": "CreateBy", "Value": ""},
+                {"Key": "Email", "Value": aws_id+"@mail.com"},
+                {"Key": "AwsID", "Value": aws_id},
+                {"Key": "CreatedOn", "Value": CreateOn},
+                {"Key": "LeaseDuration", "Value": new_date_str},
+                {"Key": "Environment", "Value": "Testing"},
+                {"Key": "Product", "Value": ""},
+                {"Key": "Version", "Value": ""},
+                {"Key": "Location", "Value": ""},
+                {"Key": "Purpose", "Value": ""}
+            ]
+        }
+
+
+    EventNames = ["RunInstances", "CreateVolume", "CreateImage", "CreateSnapshot", "CreateAutoScalingGroup", "CreateVpc", "CreateSubnet", "CreateLoadBalancer", "CreateInternetGateway", "CreateSecurityGroup", "AllocateAddress", "CreateNetworkInterface", "CreateDBInstance", "CreateBucket"]
+    if EventName in EventNames:
+        region = event['detail']['awsRegion']
+        try:
+            if EventName == "RunInstances":
+                instance_id =event['detail']['responseElements']['instancesSet']['items'][0]['instanceId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[instance_id],Tags= tag['group'])
+            elif EventName == "CreateVolume":
+                volume_id =event['detail']['responseElements']['volumeId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[volume_id],Tags= tag['group'])
+            
+            elif EventName == 'CreateVpc':
+                vpc_id = event['detail']["responseElements"]["vpc"]["vpcId"] 
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[vpc_id],Tags= tag['group'])
+
+            elif EventName == 'CreateSubnet':
+                subnet_id = event['detail']["responseElements"]["subnet"]["subnetId"]
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[subnet_id],Tags= tag['group'])
+
+            elif EventName == 'CreateInternetGateway':
+                InternetGateway_id = event['detail']['responseElements']['internetGateway']['internetGatewayId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[InternetGateway_id],Tags= tag['group'])
+
+            elif EventName == 'CreateNetworkInterface':
+                nic_id = event['detail']['responseElements']['networkInterface']['networkInterfaceId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[nic_id],Tags= tag['group'])
+
+            elif EventName == 'CreateSecurityGroup':
+                sg_id = event['detail']['responseElements']['groupId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[sg_id],Tags= tag['group'])
+                
+            elif EventName == 'AllocateAddress':
+                EIp_id = event['detail']['responseElements']['allocationId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[EIp_id],Tags= tag['group'])
+
+            elif EventName == 'CreateSnapshot':
+                snapshot_id = event['detail']['responseElements']['snapshotId']
+                ec2 = boto3.client('ec2', region_name=region)
+                ec2.create_tags(Resources=[snapshot_id],Tags= tag['group'])
+                
+            elif EventName == 'CreateDBInstance':
+                DB_id = event['detail']['responseElements']['dBInstanceArn']
+                rds = boto3.client('rds', region_name=region)
+                rds.add_tags_to_resource(ResourceName=DB_id,Tags= tag['group'])
+            
+            elif EventName == 'CreateBucket':
+                Bucket_name = event['detail']['requestParameters']['bucketName']
+                s3 = boto3.client('s3', region_name=region)
+                s3.put_bucket_tagging(Bucket=Bucket_name,Tagging={"TagSet": tag['group']})
+        except Exception as err:
+            print (f"Error message : {err}")
